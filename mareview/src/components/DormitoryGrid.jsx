@@ -86,3 +86,4 @@ function DormitoryGrid({ dormitories, status, error, onRetry }) {
 }
 
 export default DormitoryGrid;
+  
