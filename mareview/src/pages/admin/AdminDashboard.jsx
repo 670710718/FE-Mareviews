@@ -203,10 +203,10 @@ function AdminDashboard() {
           />
 
           <StatCard
-            label="คะแนนหอพัก"
+            label="รีวิวหอพัก"
             value={stats.ratings}
             icon="⭐"
-            description="คะแนนจากสมาชิก"
+            description="รีวิวจากสมาชิก"
           />
 
           <StatCard

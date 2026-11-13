@@ -47,7 +47,7 @@ function ReviewList({ items = [] }) {
               {r.rating != null && (
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-50 px-3 py-1.5 text-xs font-bold text-violet-700">
                   <span className="text-violet-500">คะแนน</span>
-                  <span>{r.rating}/10</span>
+                  <span>{r.rating}/5</span>
                 </span>
               )}
 

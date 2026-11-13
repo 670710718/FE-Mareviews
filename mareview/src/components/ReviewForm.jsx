@@ -4,7 +4,7 @@ import { useState } from 'react';
 // รับ onSubmit(text, rating) จาก Component แม่
 function ReviewForm({ dormitoryName, onSubmit }) {
   const [review, setReview] = useState('');
-  const [rating, setRating] = useState(10);
+  const [rating, setRating] = useState(5);
   const [error, setError] = useState(null);
   const [status, setStatus] = useState('typing');
 
@@ -38,8 +38,8 @@ function ReviewForm({ dormitoryName, onSubmit }) {
       return;
     }
 
-    if (rating < 1 || rating > 10) {
-      setError(new Error('คะแนนต้องอยู่ระหว่าง 1-10'));
+    if (rating < 1 || rating > 5) {
+      setError(new Error('คะแนนต้องอยู่ระหว่าง 1-5'));
       return;
     }
 
@@ -78,11 +78,11 @@ function ReviewForm({ dormitoryName, onSubmit }) {
         </p>
 
         <div
-          className="grid grid-cols-5 gap-2 sm:grid-cols-10"
+          className="grid grid-cols-5 gap-2"
           role="group"
-          aria-label="เลือกคะแนนรีวิว 1 ถึง 10 คะแนน"
+          aria-label="เลือกคะแนนรีวิว 1 ถึง 5 คะแนน"
         >
-          {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+          {Array.from({ length: 5 }, (_, i) => i + 1).map((n) => (
             <button
               key={n}
               type="button"
@@ -108,7 +108,7 @@ function ReviewForm({ dormitoryName, onSubmit }) {
           </span>
 
           <span className="rounded-full bg-white px-4 py-2 text-sm font-bold text-violet-700 shadow-sm">
-            {rating} / 10 คะแนน
+            {rating} / 5 คะแนน
           </span>
         </div>
 

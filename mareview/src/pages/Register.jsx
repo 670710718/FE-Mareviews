@@ -146,7 +146,7 @@ function Register() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="รหัสผ่าน (4 ตัวขึ้นไป)"
+                    placeholder="รหัสผ่าน (8 ตัวขึ้นไป)"
                     autoComplete="new-password"
                     required
                     minLength={4}

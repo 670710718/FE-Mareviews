@@ -33,35 +33,45 @@ function DormitoryDetail() {
   const { isLoggedIn, token, member } = useAuth();
 
   // โหลดรายละเอียดหอพัก
-  useEffect(() => {
-    let ignore = false;
+  // โหลดรายละเอียดหอพัก
+useEffect(() => {
+  let ignore = false;
 
-    async function loadDormitory() {
-      setStatus('loading');
-      setError(null);
+  async function loadDormitory() {
+    setStatus('loading');
+    setError(null);
 
-      try {
-        const data = await getDormitory(id);
+    try {
+      const data = await getDormitory(id);
 
-        if (!ignore) {
-          setDormitory(data);
-          setStatus('success');
-        }
-      } catch (err) {
-        if (!ignore) {
-          setError(err);
-          setStatus('error');
-        }
+      // แสดงข้อมูลที่ Backend ส่งกลับมาใน Console
+      console.log('========== DORMITORY API ==========');
+      console.log('Dormitory API Response:', data);
+      console.log('Rating Average:', data?.ratingAverage);
+      console.log('Rating Count:', data?.ratingCount);
+      console.log('All Keys:', Object.keys(data || {}));
+      console.log('===================================');
+
+      if (!ignore) {
+        setDormitory(data);
+        setStatus('success');
+      }
+    } catch (err) {
+      console.error('Failed to load dormitory:', err);
+
+      if (!ignore) {
+        setError(err);
+        setStatus('error');
       }
     }
+  }
 
-    loadDormitory();
+  loadDormitory();
 
-    return () => {
-      ignore = true;
-    };
-  }, [id]);
-
+  return () => {
+    ignore = true;
+  };
+}, [id]);
   // โหลดรีวิว
   useEffect(() => {
     let ignore = false;
@@ -334,7 +344,7 @@ function DormitoryDetail() {
                       ? Number(dormitory.ratingAverage).toFixed(1)
                       : '—'}
                     <span className="text-base font-semibold text-amber-400">
-                      /10
+                      /5
                     </span>
                   </p>
 
@@ -349,7 +359,7 @@ function DormitoryDetail() {
                   </p>
 
                   <p className="mt-1 text-xs text-slate-500">
-                    จำนวนคะแนน
+                    จำนวนรีวิว
                   </p>
                 </div>
               </div>

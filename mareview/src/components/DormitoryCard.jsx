@@ -87,7 +87,7 @@ function DormitoryCard({ dormitory }) {
           <p className="shrink-0 text-xs font-semibold text-amber-600">
             {dormitory.ratingAverage != null ? (
               <>
-                ⭐ {dormitory.ratingAverage} / 10
+                ⭐ {dormitory.ratingAverage} / 5
               </>
             ) : (
               <span className="font-normal text-slate-400">
@@ -99,7 +99,7 @@ function DormitoryCard({ dormitory }) {
 
         {dormitory.ratingCount != null && (
           <p className="mt-1 text-right text-[11px] text-slate-400">
-            {dormitory.ratingCount.toLocaleString('th-TH')} คะแนน
+            {dormitory.ratingCount.toLocaleString('th-TH')} รีวิว
           </p>
         )}
       </div>

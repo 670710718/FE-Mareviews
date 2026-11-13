@@ -166,7 +166,7 @@ function AdminDormitories() {
 
       {/* Page Header */}
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-700 via-violet-600 to-purple-600 p-6 text-white shadow-lg shadow-violet-200 md:p-8">
-        <div className="pointer-events-none absolute -right-12 -top-16 h-52 w-52 rounded-full bg-white/10 blur-2xl" />
+        <div className="pointer-events-none absolute -right-12 -top-16 h-52 w-52 rounded-full bg-white/5 blur-2xl" />
 
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -378,7 +378,7 @@ function AdminDormitories() {
                       <td className="whitespace-nowrap px-5 py-4">
                         <div>
                           <p className="font-semibold text-violet-700">
-                            ⭐ {Number(d.ratingAverage || 0).toFixed(1)} / 10
+                            ⭐ {Number(d.ratingAverage || 0).toFixed(1)} / 5
                           </p>
 
                           <p className="mt-1 text-xs text-slate-400">
