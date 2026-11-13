@@ -5,6 +5,38 @@ import { useAuth } from '../../auth/AuthContext';
 import { getAdminStats } from '../../api/backend';
 import { ErrorBox, Loading } from '../../pages/admin/AdminStates';
 
+// ค่าเริ่มต้นของ Dashboard
+const DEFAULT_STATS = {
+  dormitories: 0,
+  members: 0,
+  admins: 0,
+  ratings: 0,
+  wishlistItems: 0,
+  topRated: [],
+  newestMembers: [],
+};
+
+// แปลงข้อมูลจาก Backend ให้เป็นรูปแบบที่ Frontend ใช้งานได้
+function normalizeStats(data) {
+  const source = data?.stats ?? data ?? {};
+
+  return {
+    ...DEFAULT_STATS,
+    ...source,
+    dormitories: source.dormitories ?? 0,
+    members: source.members ?? 0,
+    admins: source.admins ?? 0,
+    ratings: source.ratings ?? 0,
+    wishlistItems: source.wishlistItems ?? 0,
+    topRated: Array.isArray(source.topRated)
+      ? source.topRated
+      : [],
+    newestMembers: Array.isArray(source.newestMembers)
+      ? source.newestMembers
+      : [],
+  };
+}
+
 // การ์ดตัวเลขสถิติ
 function StatCard({ label, value, to, icon, description }) {
   const body = (
@@ -48,17 +80,24 @@ function StatCard({ label, value, to, icon, description }) {
   );
 }
 
-const dateTH = iso =>
-  new Date(iso).toLocaleDateString('th-TH', {
+const dateTH = (iso) => {
+  if (!iso) return '-';
+
+  const date = new Date(iso);
+
+  if (Number.isNaN(date.getTime())) return '-';
+
+  return date.toLocaleDateString('th-TH', {
     day: 'numeric',
     month: 'short',
-    year: 'numeric'
+    year: 'numeric',
   });
+};
 
 function AdminDashboard() {
   const { token } = useAuth();
 
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState(DEFAULT_STATS);
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -74,7 +113,7 @@ function AdminDashboard() {
         const data = await getAdminStats(token);
 
         if (!ignore) {
-          setStats(data);
+          setStats(normalizeStats(data));
           setStatus('success');
         }
       } catch (err) {
@@ -98,7 +137,7 @@ function AdminDashboard() {
     return (
       <ErrorBox
         error={error}
-        onRetry={() => setReloadKey(k => k + 1)}
+        onRetry={() => setReloadKey((k) => k + 1)}
       />
     );
   }
@@ -215,13 +254,9 @@ function AdminDashboard() {
               <ol className="divide-y divide-violet-50">
                 {stats.topRated.map((dormitory, i) => (
                   <li
-                    key={dormitory.id}
+                    key={dormitory.id ?? i}
                     className="flex items-center gap-3 py-3"
                   >
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-violet-100 text-xs font-bold text-violet-700">
-                      {i + 1}
-                    </span>
-
                     {dormitory.images?.[0] ? (
                       <img
                         src={dormitory.images[0]}
@@ -234,12 +269,16 @@ function AdminDashboard() {
                       </div>
                     )}
 
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-violet-100 text-xs font-bold text-violet-700">
+                      {i + 1}
+                    </span>
+
                     <div className="min-w-0 flex-1">
                       <Link
                         to={`/dormitories/${dormitory.id}`}
                         className="block truncate text-sm font-semibold text-slate-800 transition hover:text-violet-700"
                       >
-                        {dormitory.name}
+                        {dormitory.name || 'ไม่ระบุชื่อหอพัก'}
                       </Link>
 
                       <p className="mt-1 truncate text-xs text-slate-500">
@@ -294,9 +333,9 @@ function AdminDashboard() {
               </div>
             ) : (
               <ul className="divide-y divide-violet-50">
-                {stats.newestMembers.map(member => (
+                {stats.newestMembers.map((member, i) => (
                   <li
-                    key={member.id}
+                    key={member.id ?? i}
                     className="flex items-center justify-between gap-3 py-3"
                   >
                     <div className="flex min-w-0 items-center gap-3">
@@ -306,11 +345,11 @@ function AdminDashboard() {
 
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-slate-800">
-                          {member.displayName}
+                          {member.displayName || 'ไม่ระบุชื่อ'}
                         </p>
 
                         <p className="mt-1 truncate text-xs text-slate-500">
-                          {member.email}
+                          {member.email || '-'}
                         </p>
                       </div>
                     </div>

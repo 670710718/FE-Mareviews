@@ -15,6 +15,13 @@ function formatPrice(price) {
   return Number(price).toLocaleString('th-TH');
 }
 
+function extractItems(data) {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.reviews)) return data.reviews;
+  return [];
+}
+
 function DormitoryDetail() {
   const { id } = useParams();
 
@@ -55,7 +62,7 @@ function DormitoryDetail() {
     };
   }, [id]);
 
-  // โหลดรีวิวแยกจากรายละเอียดหอพัก
+  // โหลดรีวิว
   useEffect(() => {
     let ignore = false;
 
@@ -64,11 +71,7 @@ function DormitoryDetail() {
         const data = await getReviews(id);
 
         if (!ignore) {
-          setReviews(
-            Array.isArray(data)
-              ? data
-              : data?.items ?? []
-          );
+          setReviews(extractItems(data));
         }
       } catch (err) {
         console.error('Failed to load dormitory reviews:', err);
@@ -86,19 +89,40 @@ function DormitoryDetail() {
     };
   }, [id]);
 
-  // ส่งรีวิวใหม่ไปยัง Backend
+  // ส่งรีวิวใหม่และอัปเดตข้อมูล
   async function handleReviewSubmit(text, rating) {
+    // บันทึกรีวิวก่อน
     const saved = await postReview(id, text, rating, token);
 
+    // เพิ่มรีวิวใหม่ทันทีเพื่อให้หน้าอัปเดต
     const newReview = {
       ...saved,
-      member: saved.member || {
+      rating: saved?.rating ?? rating,
+      text: saved?.text ?? text,
+      member: saved?.member || {
         id: member?.id,
         displayName: member?.displayName,
       },
     };
 
-    setReviews((current) => [newReview, ...current]);
+    setReviews((current) => [
+      newReview,
+      ...current.filter((item) => item.id !== newReview.id),
+    ]);
+
+    // โหลดรีวิวและรายละเอียดหอพักใหม่
+    // หากโหลดใหม่ไม่สำเร็จ จะไม่ถือว่าการบันทึกรีวิวล้มเหลว
+    try {
+      const [reviewData, dormitoryData] = await Promise.all([
+        getReviews(id),
+        getDormitory(id),
+      ]);
+
+      setReviews(extractItems(reviewData));
+      setDormitory(dormitoryData);
+    } catch (err) {
+      console.error('Failed to refresh after review submission:', err);
+    }
   }
 
   // Loading State
@@ -151,13 +175,12 @@ function DormitoryDetail() {
     );
   }
 
-  const images = Array.isArray(dormitory.images)
+  const images = Array.isArray(dormitory?.images)
     ? dormitory.images.filter(Boolean)
     : [];
 
   return (
     <div className="min-h-screen bg-violet-50/20">
-
       {/* Page Header */}
       <section className="border-b border-violet-100 bg-gradient-to-br from-violet-50 via-white to-purple-50">
         <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 lg:px-8">
@@ -196,10 +219,7 @@ function DormitoryDetail() {
       </section>
 
       <main className="mx-auto max-w-7xl px-4 py-10 md:px-6 lg:px-8">
-
-        {/* Main Information */}
         <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-
           {/* Image Gallery */}
           <section>
             {images.length > 0 ? (
@@ -248,7 +268,6 @@ function DormitoryDetail() {
 
           {/* Dormitory Information */}
           <section className="flex flex-col gap-5">
-
             {/* Price Card */}
             <div className="rounded-3xl border border-violet-100 bg-white p-6 shadow-sm">
               <div className="flex items-center gap-3">
@@ -407,13 +426,11 @@ function DormitoryDetail() {
 
               <DormitoryActions dormitoryId={dormitory.id} />
             </div>
-
           </section>
         </div>
 
         {/* Reviews Section */}
         <section className="mt-14">
-
           <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
             <div>
               <span className="text-xs font-bold uppercase tracking-[0.2em] text-violet-600">
@@ -437,7 +454,6 @@ function DormitoryDetail() {
           <div className="rounded-3xl border border-violet-100 bg-white p-5 shadow-sm md:p-7">
             <ReviewList items={reviews} />
           </div>
-
         </section>
 
         {/* Review Form */}
@@ -485,7 +501,6 @@ function DormitoryDetail() {
             )}
           </div>
         </section>
-
       </main>
     </div>
   );

@@ -9,9 +9,58 @@ import {
   inputClass
 } from './AdminStates';
 
+// แปลงข้อมูลจาก Backend ให้เป็น Array
+function extractDormitories(response) {
+  if (Array.isArray(response)) {
+    return response;
+  }
+
+  if (Array.isArray(response?.items)) {
+    return response.items;
+  }
+
+  if (Array.isArray(response?.dormitories)) {
+    return response.dormitories;
+  }
+
+  if (Array.isArray(response?.data)) {
+    return response.data;
+  }
+
+  if (Array.isArray(response?.data?.items)) {
+    return response.data.items;
+  }
+
+  if (Array.isArray(response?.data?.dormitories)) {
+    return response.data.dormitories;
+  }
+
+  return [];
+}
+
+// แปลงข้อมูลหอพักให้ใช้ชื่อ Field สม่ำเสมอ
+function normalizeDormitory(dormitory) {
+  return {
+    ...dormitory,
+    id: dormitory.id ?? dormitory.ID,
+    name: dormitory.name ?? dormitory.Name ?? '',
+    minPrice: dormitory.minPrice ?? dormitory.MinPrice,
+    maxPrice: dormitory.maxPrice ?? dormitory.MaxPrice,
+    dormType: dormitory.dormType ?? dormitory.DormType ?? '',
+    genderType: dormitory.genderType ?? dormitory.GenderType ?? '',
+    ratingAverage:
+      dormitory.ratingAverage ?? dormitory.RatingAverage ?? 0,
+    ratingCount:
+      dormitory.ratingCount ?? dormitory.RatingCount ?? 0,
+    images: Array.isArray(dormitory.images)
+      ? dormitory.images
+      : Array.isArray(dormitory.Images)
+        ? dormitory.Images
+        : []
+  };
+}
+
 // ตารางหอพักทั้งหมด
-// ใช้ GET /api/dormitories แล้วกรองข้อมูลในเครื่อง
-// เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถเพิ่มหรือแก้ไขข้อมูลได้
 function AdminDormitories() {
   const [dormitories, setDormitories] = useState([]);
   const [status, setStatus] = useState('loading');
@@ -27,13 +76,20 @@ function AdminDormitories() {
       setError(null);
 
       try {
-        const list = await getDormitories();
+        const response = await getDormitories();
+
+        console.log('Dormitories API response:', response);
+
+        const list = extractDormitories(response)
+          .map(normalizeDormitory);
 
         if (!ignore) {
-          setDormitories(Array.isArray(list) ? list : []);
+          setDormitories(list);
           setStatus('success');
         }
       } catch (err) {
+        console.error('Load dormitories error:', err);
+
         if (!ignore) {
           setError(err);
           setStatus('error');
@@ -48,6 +104,7 @@ function AdminDormitories() {
     };
   }, [reloadKey]);
 
+  // ค้นหาหอพัก
   const q = query.trim().toLowerCase();
 
   const shown = dormitories.filter(d => {
@@ -65,10 +122,15 @@ function AdminDormitories() {
     );
   });
 
+  // จัดรูปแบบราคา
   function formatPrice(price) {
     if (price == null || price === '') return '-';
 
-    return Number(price).toLocaleString('th-TH');
+    const number = Number(price);
+
+    if (!Number.isFinite(number)) return '-';
+
+    return number.toLocaleString('th-TH');
   }
 
   function formatPriceRange(dormitory) {
@@ -91,6 +153,13 @@ function AdminDormitories() {
 
     return `สูงสุด ${formatPrice(max)} บาท`;
   }
+
+  // นับประเภทหอพัก
+  const dormTypeCount = new Set(
+    dormitories
+      .map(d => d.dormType)
+      .filter(Boolean)
+  ).size;
 
   return (
     <div className="space-y-6">
@@ -158,7 +227,7 @@ function AdminDormitories() {
               </p>
 
               <p className="mt-2 text-3xl font-extrabold text-slate-800">
-                {new Set(dormitories.map(d => d.dormType).filter(Boolean)).size}
+                {dormTypeCount}
               </p>
 
               <p className="mt-1 text-xs text-slate-400">
@@ -203,6 +272,14 @@ function AdminDormitories() {
               />
             </div>
 
+            <button
+              type="button"
+              onClick={() => setReloadKey(key => key + 1)}
+              className="rounded-xl border border-violet-200 px-4 py-2.5 text-sm font-semibold text-violet-700 transition hover:bg-violet-50"
+            >
+              ↻ รีเฟรช
+            </button>
+
             <Link
               to="/admin/dormitories/new"
               className={
@@ -245,12 +322,12 @@ function AdminDormitories() {
               </thead>
 
               <tbody className="divide-y divide-violet-50">
-                {shown.map(d => {
+                {shown.map((d, index) => {
                   const image = d.images?.[0];
 
                   return (
                     <tr
-                      key={d.id}
+                      key={d.id ?? index}
                       className="transition hover:bg-violet-50/40"
                     >
                       {/* Dormitory */}
@@ -259,7 +336,7 @@ function AdminDormitories() {
                           {image ? (
                             <img
                               src={image}
-                              alt={d.name ?? 'รูปหอพัก'}
+                              alt={d.name || 'รูปหอพัก'}
                               className="h-12 w-16 shrink-0 rounded-xl object-cover"
                             />
                           ) : (
@@ -270,11 +347,11 @@ function AdminDormitories() {
 
                           <div className="min-w-0">
                             <p className="truncate font-semibold text-slate-800">
-                              {d.name ?? '(ไม่มีชื่อหอพัก)'}
+                              {d.name || '(ไม่มีชื่อหอพัก)'}
                             </p>
 
                             <p className="mt-1 truncate text-xs text-slate-400">
-                              ID: #{d.id}
+                              ID: #{d.id ?? '-'}
                             </p>
                           </div>
                         </div>
@@ -283,13 +360,13 @@ function AdminDormitories() {
                       {/* Dorm Type */}
                       <td className="px-5 py-4">
                         <span className="inline-flex rounded-full bg-violet-100 px-3 py-1 text-xs font-semibold text-violet-700">
-                          {d.dormType ?? '-'}
+                          {d.dormType || '-'}
                         </span>
                       </td>
 
                       {/* Gender Type */}
                       <td className="px-5 py-4 text-slate-600">
-                        {d.genderType ?? '-'}
+                        {d.genderType || '-'}
                       </td>
 
                       {/* Price */}
@@ -299,19 +376,15 @@ function AdminDormitories() {
 
                       {/* Rating */}
                       <td className="whitespace-nowrap px-5 py-4">
-                        {d.ratingAverage != null ? (
-                          <div>
-                            <p className="font-semibold text-violet-700">
-                              ⭐ {Number(d.ratingAverage).toFixed(1)} / 10
-                            </p>
+                        <div>
+                          <p className="font-semibold text-violet-700">
+                            ⭐ {Number(d.ratingAverage || 0).toFixed(1)} / 10
+                          </p>
 
-                            <p className="mt-1 text-xs text-slate-400">
-                              {d.ratingCount ?? 0} คะแนน
-                            </p>
-                          </div>
-                        ) : (
-                          <span className="text-slate-400">-</span>
-                        )}
+                          <p className="mt-1 text-xs text-slate-400">
+                            {d.ratingCount} คะแนน
+                          </p>
+                        </div>
                       </td>
 
                       {/* Actions */}
@@ -336,7 +409,9 @@ function AdminDormitories() {
                       <div className="text-3xl">🔍</div>
 
                       <p className="mt-3 font-semibold text-slate-600">
-                        ไม่พบหอพักที่ค้นหา
+                        {dormitories.length === 0
+                          ? 'ยังไม่มีข้อมูลหอพักในระบบ'
+                          : 'ไม่พบหอพักที่ค้นหา'}
                       </p>
 
                       <p className="mt-1 text-xs text-slate-400">

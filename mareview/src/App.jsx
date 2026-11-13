@@ -23,6 +23,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminDormitories from './pages/admin/AdminDormitories';
 import AdminDormitoryForm from './pages/admin/AdminDormitoryForm';
 import AdminMembers from './pages/admin/AdminMembers';
+import AdminReviews from './pages/admin/AdminReviews';
 
 function App() {
   return (
@@ -85,6 +86,11 @@ function App() {
               <Route
                 path="members"
                 element={<AdminMembers />}
+              />
+
+              <Route
+                path="reviews"
+                element={<AdminReviews />}
               />
             </Route>
 

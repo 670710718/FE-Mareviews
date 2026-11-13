@@ -1,12 +1,12 @@
 
 import { useState } from 'react';
 
-// ฟอร์มรีวิวหอพัก รับ onSubmit(text, rating) จาก Component แม่
+// รับ onSubmit(text, rating) จาก Component แม่
 function ReviewForm({ dormitoryName, onSubmit }) {
   const [review, setReview] = useState('');
   const [rating, setRating] = useState(10);
   const [error, setError] = useState(null);
-  const [status, setStatus] = useState('typing'); // typing | submitting | success
+  const [status, setStatus] = useState('typing');
 
   if (status === 'success') {
     return (
@@ -38,6 +38,11 @@ function ReviewForm({ dormitoryName, onSubmit }) {
       return;
     }
 
+    if (rating < 1 || rating > 10) {
+      setError(new Error('คะแนนต้องอยู่ระหว่าง 1-10'));
+      return;
+    }
+
     setStatus('submitting');
     setError(null);
 
@@ -52,8 +57,6 @@ function ReviewForm({ dormitoryName, onSubmit }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-
-      {/* Form Heading */}
       <div>
         <span className="text-xs font-bold uppercase tracking-[0.2em] text-violet-600">
           Share Your Experience

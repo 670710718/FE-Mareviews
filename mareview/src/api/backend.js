@@ -136,8 +136,7 @@ export function getDormitories(query = '') {
 }
 
 // ดึงรายการหอพักพร้อมตัวกรอง
-// หมายเหตุ: Backend ต้องรองรับ Query Parameters
-// ก่อนจึงจะใช้การกรองฝั่ง Server ได้
+// Backend ต้องรองรับ Query Parameters ก่อน
 export function filterDormitories({
   query = '',
   dormType = '',
@@ -179,7 +178,7 @@ export function getReviews(dormitoryId) {
 }
 
 // เพิ่มรีวิว
-// คะแนนรีวิวใช้ระบบ 1-5
+// คะแนนรีวิวใช้ระบบ 1-10
 export function postReview(dormitoryId, text, rating, token) {
   return apiFetch(`/api/dormitories/${dormitoryId}/reviews`, {
     method: 'POST',
@@ -191,7 +190,7 @@ export function postReview(dormitoryId, text, rating, token) {
   });
 }
 
-// ลบรีวิว
+// ลบรีวิวของสมาชิก
 export function deleteReview(reviewId, token) {
   return apiFetch(`/api/reviews/${reviewId}`, {
     method: 'DELETE',
@@ -203,8 +202,7 @@ export function deleteReview(reviewId, token) {
 // คะแนนหอพัก (Dormitory Rating)
 // ==========================================
 
-// คะแนนหอพักใช้ระบบ 1-10
-// แยกจากคะแนนรีวิว 1-5
+// คะแนนหอพักระบบเดิม 1-10
 export function putDormitoryRating(dormitoryId, score, token) {
   return apiFetch(`/api/dormitories/${dormitoryId}/rating`, {
     method: 'PUT',
@@ -275,6 +273,33 @@ export function getAdminStats(token) {
   return apiFetch('/api/admin/stats', { token });
 }
 
+// ==========================================
+// Admin - Reviews
+// Admin ดูและลบรีวิวได้เท่านั้น
+// ไม่มีฟังก์ชันแก้ไขข้อความหรือคะแนน
+// ==========================================
+
+// ดึงรีวิวทั้งหมดสำหรับ Admin
+export async function getAdminReviews(token) {
+  const data = await apiFetch('/api/admin/reviews', { token });
+
+  return Array.isArray(data)
+    ? data
+    : data?.items ?? data?.reviews ?? [];
+}
+
+// ลบรีวิวโดย Admin
+export function deleteAdminReview(reviewId, token) {
+  return apiFetch(`/api/admin/reviews/${reviewId}`, {
+    method: 'DELETE',
+    token,
+  });
+}
+
+// ==========================================
+// Admin - Members
+// ==========================================
+
 // รายชื่อสมาชิก
 export async function getAdminMembers(token) {
   const data = await apiFetch('/api/admin/members', { token });
@@ -294,6 +319,10 @@ export function setMemberRole(memberId, role, token) {
     token,
   });
 }
+
+// ==========================================
+// Admin - Dormitories
+// ==========================================
 
 // ดึงข้อมูลหอพักสำหรับหน้า Admin
 export function getAdminDormitory(dormitoryId, token) {

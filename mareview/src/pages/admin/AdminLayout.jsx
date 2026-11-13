@@ -53,6 +53,10 @@ function AdminLayout() {
             <span>👥</span>
             สมาชิก
           </NavLink>
+          <NavLink to="/admin/reviews" className={tabClass}>
+            <span>💬</span>
+            รีวิว
+          </NavLink>
         </nav>
       </div>
 

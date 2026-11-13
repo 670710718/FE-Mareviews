@@ -1,7 +1,6 @@
 
- // รายการรีวิวหอพัก รับ items ตามสัญญา GET /api/dormitories/{id}/reviews
 function ReviewList({ items = [] }) {
-  if (items.length === 0) {
+  if (!items.length) {
     return (
       <div className="rounded-2xl border border-dashed border-violet-200 bg-violet-50/50 px-5 py-12 text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-100 text-3xl">
