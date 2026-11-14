@@ -149,7 +149,7 @@ function Register() {
                     placeholder="รหัสผ่าน (8 ตัวขึ้นไป)"
                     autoComplete="new-password"
                     required
-                    minLength={4}
+                    minLength={8}
                     disabled={status === 'submitting'}
                     className={inputClass}
                   />
